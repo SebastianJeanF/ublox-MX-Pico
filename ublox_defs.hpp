@@ -8,6 +8,8 @@ typedef struct {
     float longitude;
     float altitude;
     int num_satellites;
+
+    bool valid;
 } gnss_data_t;
 
 struct UBXFrame {
