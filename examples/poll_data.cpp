@@ -37,7 +37,7 @@ int main() {
 
     while (true) {
         if (gps.read_data(&data)) {
-            printf("UTC Time: %d\n", data.utc_time);
+            // printf("UTC Time: %d\n", data.utc_time);
             printf("Latitude: %f\n", data.latitude);
             printf("Longitude: %f\n", data.longitude);
             printf("Num Satellites: %d\n", data.num_satellites);
