@@ -160,6 +160,7 @@ void GNSS::request_version() {
     delete[] frame.payload;
 }
 
+// TODO: Optimize this
 bool GNSS::read_GGA_data(gnss_data_t *data) {
 
     // Wait until a '$' is found.
@@ -167,21 +168,26 @@ bool GNSS::read_GGA_data(gnss_data_t *data) {
     int i = 0;
     int buf_max = 2048;
     uint8_t buffer[buf_max];
+
     while (true) {
         bool success = i2c_read_blocking(i2c, UBLOX_ADDR, buffer + i, 1, false);
         if (!success) continue;
         if (buffer[i] == '$') {
+#ifdef UBLOX_VERBOSE
             printf("Found the start of the sentence. Here was right below it\n: ");
             print_buffer(buffer, i);
             printf("\n");
+#endif
             break;
         }
 
         i++;
         if (i == buf_max) {
+#ifdef UBLOX_VERBOSE
             printf("Buffer is full. Here is the buffer\n");
             print_buffer(buffer, i);
             printf("\n");
+#endif
             i = 0;
 
             return false;
@@ -297,6 +303,8 @@ std::string constructPUBX40Message(const std::string &msgId, uint8_t i2cRate, ui
 
     std::string full_message = addNmeaChecksum(pubx);
 
+    debug_log("Full PUBX message: %s\n", full_message.c_str());
+
     return full_message;
 }
 
@@ -365,7 +373,7 @@ void GNSS::read_config(const cfg_key_id_t key_id, const read_config_layer_t laye
 }
 
 bool GNSS::set_speed_ms(const int measure_rate_ms) {
-    if (measure_rate_ms < DATA_RATE_MS_MIN) {
+    if (measure_rate_ms < MIN_DATA_RATE_MS) {
         return false;
     }
     UBXFrame frame;
@@ -508,11 +516,11 @@ void GNSS::disable_non_GGA_messages(bool enable_GGA) {
     // By default, the GNSS receiver outputs all NMEA messages at 1 Hz on all ports
     std::vector<std::string> nmeaMessages = {"GLL", "GSA", "GSV", "RMC", "VTG", "TXT", "GGA"};
 
+    std::string nmeaGGA = "GGA";
     for (const auto msg : nmeaMessages) {
-
         // Disable all NMEA messages, except GGA if toggled on
-        enable_GGA = (enable_GGA && msg == "GGA");
-        const std::string tmp = constructPUBX40Message(msg, enable_GGA);
+        bool msgEnabled = (enable_GGA && msg.compare(nmeaGGA) == 0);
+        const std::string tmp = constructPUBX40Message(msg, msgEnabled);
         const char *cmd = tmp.c_str();
 
         // Send command to the GNSS receiver
@@ -653,7 +661,21 @@ bool GNSS::read_PVT_data(UbxNavPvt *pvt) {
     parseUbloxNavPvt(packet, pvt);
     return true;
 }
+bool GNSS::begin_GGA(const int data_rate_ms) {
+    if (data_rate_ms < MIN_DATA_RATE_MS) {
+        return false;
+    }
 
+    disable_non_GGA_messages();
+
+    enable_single_GPS_mode();
+
+    if (!set_speed_ms(data_rate_ms)) {
+        return false;
+    }
+
+    return true;
+}
 bool GNSS::begin_PVT(const int data_rate_ms) {
     const bool ENABLE_PVT = true;
     const int PVT_LEN_BYTES = 1;

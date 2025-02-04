@@ -137,8 +137,10 @@ public:
     /**
      * Sets up the GNSS to begin sending NMEA GGA data
      * @return True on successful transmission, false otherwise
+     * @param data_rate_ms The rate at which the GNSS will send GGA data.
+     * Cannot be lower than 40ms.
      */
-    bool begin_GGA();
+    bool begin_GGA(int data_rate_ms);
 
     /**
      * Reads the GGA data from the GNSS receiver
@@ -185,7 +187,7 @@ private:
      * The minimum data rate in milliseconds that
      * the GNSS receiver can output data at
      */
-    static const int DATA_RATE_MS_MIN = 40;
+    static const int MIN_DATA_RATE_MS = 40;
 };
 
 #endif // UBLOX_MX_HPP

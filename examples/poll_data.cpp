@@ -32,22 +32,20 @@ int main() {
 }
 
 void demo_GGA() {
+    const int WAIT_TIME_MS = 40;
+
+    if (!gps.begin_GGA(WAIT_TIME_MS)) return;
 
     gnss_data_t data = {0};
-
-    const int WAIT_TIME_MS = 1000;
-
-    // 200 is good, takes 20ms to retrieve data
-    // Wait time of 2000 cuases a lot of waste bytes to be read (~400), ~60ms to read with high SD
-
+    int i = 0;
     while (true) {
-
         if (gps.read_GGA_data(&data)) {
-
+            i++;
             printf("UTC Time: %d\n", data.utc_time);
             printf("Latitude: %f\n", data.latitude);
             printf("Longitude: %f\n", data.longitude);
             printf("Num Satellites: %d\n", data.num_satellites);
+            printf("Count: %d\n\n\n", i);
         }
         sleep_ms(WAIT_TIME_MS);
     }
@@ -81,13 +79,13 @@ void parse_PVT(UbxNavPvt *pvt) {
     std::cout << "  Ground Spd : " << groundSpeedMs << " m/s\n";
     std::cout << "  Heading    : " << headingDeg << " deg\n";
     std::cout << "  pDOP       : " << pvt->pDOP * 0.01 << "\n";
+    std::cout << "\n\n\n";
 }
 
 void demo_PVT() {
+    const int WAIT_TIME_MS = 40;
 
-    const int WAIT_TIME_MS = 1000;
-
-    gps.begin_PVT(WAIT_TIME_MS);
+    if (!gps.begin_PVT(WAIT_TIME_MS)) return;
 
     UbxNavPvt data = {0};
 
@@ -104,13 +102,6 @@ void demo_PVT() {
 #endif
             parse_PVT(&data);
         }
-#ifdef UBLOX_TIME
-        else {
-            absolute_time_t end_time = get_absolute_time();
-            int64_t elapsed_us = absolute_time_diff_us(start_time, end_time);
-            printf("Elapsed time for attempted read: %lld microseconds\n", elapsed_us);
-        }
-#endif
 
         sleep_ms(WAIT_TIME_MS);
     }
