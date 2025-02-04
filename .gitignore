@@ -3,3 +3,8 @@
 
 # macOS
 **/.DS_Store
+
+# Other directories
+test/
+lib/
+.vscode/

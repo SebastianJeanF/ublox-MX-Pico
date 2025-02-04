@@ -2,7 +2,7 @@
 #define UBLOX_DEFS_HPP
 
 // TODO: Change representation of UTC time
-typedef struct {
+struct gnss_data_t {
     uint32_t utc_time;
     float latitude;
     float longitude;
@@ -10,7 +10,7 @@ typedef struct {
     int num_satellites;
 
     bool valid;
-} gnss_data_t;
+} ;
 
 struct UBXFrame {
     uint8_t sync_1 = 0xB5;
