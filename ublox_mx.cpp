@@ -1,4 +1,6 @@
 #include "ublox_mx.hpp"
+#include "hardware/i2c.h"
+#include "pico/stdlib.h"
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
@@ -206,31 +208,17 @@ bool GNSS::read_GGA_data(gnss_data_t *data) {
         if (byte == '\n') {
 
             int i = 0;
-            bool hit = false;
             uint8_t buffer2[100];
             while (i < 100) {
                 bool success = i2c_read_blocking(i2c, UBLOX_ADDR, buffer2 + i, 1, false);
                 if (!success) continue;
                 if (buffer2[i] == '\n') {
                     i++;
-                    hit = true;
                     break;
                 }
                 i++;
             }
 
-#ifdef UBLOX_VERBOSE
-
-            printf("Here is buffer2, which might have a new message of length %d\n", i);
-            if (hit) {
-                for (int j = 0; j < i; j++) {
-                    printf("%c", buffer2[j]);
-                }
-            }
-            print_buffer(buffer2, i);
-            printf("\n");
-
-#endif
             break;
         }
     }

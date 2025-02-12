@@ -2,8 +2,6 @@
 #define UBLOX_MX_HPP
 
 #include "hardware/i2c.h"
-#include "pico/stdlib.h"
-
 #include "ublox_defs.hpp"
 #include "ublox_nav_pvt.hpp"
 #include <string>
