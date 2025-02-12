@@ -1,3 +1,10 @@
+/**
+ * @file ublox_nav_pvt.hpp
+ * @author sj728
+ *
+ * @brief Definition of the UBX NAV-PVT message struct
+ */
+
 #ifndef UBLOX_NAV_PVT_HPP
 #define UBLOX_NAV_PVT_HPP
 

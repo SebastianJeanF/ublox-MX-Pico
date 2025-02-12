@@ -1,3 +1,11 @@
+/**
+ * @file ublox_mx.hpp
+ * @author sj728
+ * @author csg83
+ *
+ * @brief Header file for the GNSS class for the U-blox GNSS receiver (Max M10s)
+ */
+
 #ifndef UBLOX_MX_HPP
 #define UBLOX_MX_HPP
 
@@ -119,12 +127,12 @@ public:
     void enable_single_GPS_mode();
 
     /**
-     * Sets up the GNSS to begin sending PVT data at 25HZ
-     * @param data_rate_ms The rate at which the GNSS will send PVT data.
-     * Cannot be lower than 40ms.
+     * Sets up the GNSS to begin sending PVT data
+     * @param data_rate_hz The rate at which the GNSS will send PVT data.
+     * Must be between 1 and 25 hz
      * @return True on successful transmission, false otherwise
      */
-    bool begin_PVT(int data_rate_ms);
+    bool begin_PVT(int data_rate_hz);
 
     /**
      * Reads the PVT data from the GNSS receiver
@@ -134,11 +142,11 @@ public:
 
     /**
      * Sets up the GNSS to begin sending NMEA GGA data
+     * @param data_rate_hz The rate at which the GNSS will send GGA data.
+     * Must be between 1 and 25 hz
      * @return True on successful transmission, false otherwise
-     * @param data_rate_ms The rate at which the GNSS will send GGA data.
-     * Cannot be lower than 40ms.
      */
-    bool begin_GGA(int data_rate_ms);
+    bool begin_GGA(int data_rate_hz);
 
     /**
      * Reads the GGA data from the GNSS receiver
@@ -185,7 +193,7 @@ private:
      * The minimum data rate in milliseconds that
      * the GNSS receiver can output data at
      */
-    static const int MIN_DATA_RATE_MS = 40;
+    static const int MAX_DATA_RATE_HZ = 25;
 };
 
 #endif // UBLOX_MX_HPP

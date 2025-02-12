@@ -1,3 +1,12 @@
+/**
+ * @file ublox_def.hpp
+ * @author sj728
+ * @author csg83
+ *
+ * @brief Various helpful definitions for the
+ * GNSS class for the U-blox GNSS receiver
+ */
+
 #ifndef UBLOX_DEFS_HPP
 #define UBLOX_DEFS_HPP
 
@@ -10,7 +19,7 @@ struct gnss_data_t {
     int num_satellites;
 
     bool valid;
-} ;
+};
 
 struct UBXFrame {
     uint8_t sync_1 = 0xB5;

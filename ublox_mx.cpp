@@ -1,3 +1,12 @@
+/**
+ * @file ublox_mx.cpp
+ * @author sj728
+ * @author csg83
+ *
+ * @brief Implementation of the GNSS class for the U-blox GNSS receiver
+ * (Max M10s)
+ */
+
 #include "ublox_mx.hpp"
 #include "hardware/i2c.h"
 #include "pico/stdlib.h"
@@ -360,10 +369,13 @@ void GNSS::read_config(const cfg_key_id_t key_id, const read_config_layer_t laye
     delete[] frame.payload;
 }
 
-bool GNSS::set_speed_ms(const int measure_rate_ms) {
-    if (measure_rate_ms < MIN_DATA_RATE_MS) {
+bool GNSS::set_speed_ms(const int measure_rate_hz) {
+    if (measure_rate_hz > MAX_DATA_RATE_HZ || measure_rate_hz <= 0) {
         return false;
     }
+    const int HZ_TO_MS = 1000;
+    const int measure_rate_ms = HZ_TO_MS / measure_rate_hz;
+
     UBXFrame frame;
     frame.msg_class = 0x06;
     frame.msg_id = 0x8a;
@@ -555,12 +567,12 @@ void parseUbloxNavPvt(const uint8_t *data, UbxNavPvt *pvt) {
     // Basic sanity checks:
     // 1) At least 98 bytes for a complete UBX NAV-PVT message:
     if (length < 98) {
-        std::cerr << "ERROR: Not enough data to parse UBX-NAV-PVT\n";
+        debug_log("ERROR: Not enough data to parse UBX-NAV-PVT\n");
         return;
     }
     // 2) Check sync, class, ID, length fields
     if (data[0] != 0xB5 || data[1] != 0x62) {
-        std::cerr << "ERROR: Invalid UBX sync chars\n";
+        debug_log("ERROR: Invalid UBX sync chars\n");
         return;
     }
 
@@ -569,11 +581,11 @@ void parseUbloxNavPvt(const uint8_t *data, UbxNavPvt *pvt) {
     uint16_t payloadLen = data[4] | (data[5] << 8);  // little-endian
 
     if (cls != 0x01 || id != 0x07) {
-        std::cerr << "ERROR: Not a NAV-PVT message!\n";
+        debug_log("ERROR: Not a NAV-PVT message!\n");
         return;
     }
     if (payloadLen != 92) {
-        std::cerr << "ERROR: NAV-PVT payload length != 92!\n";
+        debug_log("ERROR: NAV-PVT payload length != 92!\n");
         return;
     }
 
@@ -650,9 +662,6 @@ bool GNSS::read_PVT_data(UbxNavPvt *pvt) {
     return true;
 }
 bool GNSS::begin_GGA(const int data_rate_ms) {
-    if (data_rate_ms < MIN_DATA_RATE_MS) {
-        return false;
-    }
 
     disable_non_GGA_messages();
 
@@ -667,16 +676,12 @@ bool GNSS::begin_GGA(const int data_rate_ms) {
 bool GNSS::begin_PVT(const int data_rate_ms) {
     const bool ENABLE_PVT = true;
     const int PVT_LEN_BYTES = 1;
-
-    if (data_rate_ms < 40) {
-        return false;
-    }
-
     const bool enable_GGA = false;
 
     disable_non_GGA_messages(enable_GGA);
 
     enable_single_GPS_mode();
+    printf("Setting speed\n");
 
     if (!set_speed_ms(data_rate_ms)) {
         return false;
@@ -688,14 +693,14 @@ bool GNSS::begin_PVT(const int data_rate_ms) {
 }
 
 void GNSS::enable_single_GPS_mode() {
-    const bool isEnabled = false;
+    const bool is_enabled = false;
     const size_t LEN_BYTES = 1;
     // const int WAIT_TIME_MS = 500;
 
     std::vector<GNSS::cfg_key_id_t> key_ids {GNSS::CFG_SIGNAL_GAL_ENA, GNSS::CFG_SIGNAL_BDS_ENA, GNSS::CFG_SIGNAL_GLO_ENA, GNSS::CFG_SIGNAL_BDS_B1_ENA, GNSS::CFG_SIGNAL_BDS_B1C_ENA, GNSS::CFG_SIGNAL_GAL_E1_ENA, GNSS::CFG_SIGNAL_GLO_L1_ENA};
 
     for (const auto key_id : key_ids) {
-        set_config(key_id, isEnabled, LEN_BYTES);
+        set_config(key_id, is_enabled, LEN_BYTES);
         // sleep_ms(WAIT_TIME_MS);
     }
 }

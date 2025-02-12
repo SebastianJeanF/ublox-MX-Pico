@@ -1,3 +1,11 @@
+/**
+ * @file poll_data.cpp
+ * @author sj728
+ * @author csg83
+ *
+ * @brief Example program to poll GNSS data from the U-blox GNSS receiver
+ */
+
 #include "../ublox_mx.hpp"
 #include "../ublox_nav_pvt.hpp"
 #include "hardware/gpio.h"
@@ -11,7 +19,10 @@
 #define I2C_PORT i2c0
 #define I2C_SDA 12
 #define I2C_SCL 13
-const int WAIT_TIME_MS = 1000;
+const int WAIT_TIME_HZ = 20;
+
+const int HZ_TO_MS = 1000;
+const int WAIT_TIME_MS = HZ_TO_MS / WAIT_TIME_HZ;
 
 GNSS gps(I2C_PORT);
 
@@ -33,12 +44,12 @@ int main() {
     }
     printf("Connected\n");
 
-    // demo_PVT();
-    demo_GGA();
+    demo_PVT();
+    // demo_GGA();
 }
 
 void demo_GGA() {
-    if (!gps.begin_GGA(WAIT_TIME_MS)) return;
+    if (!gps.begin_GGA(WAIT_TIME_HZ)) return;
 
     gnss_data_t data = {0};
     int i = 0;
@@ -169,7 +180,7 @@ void parse_PVT(UbxNavPvt *pvt) {
 
 void demo_PVT() {
 
-    if (!gps.begin_PVT(WAIT_TIME_MS)) return;
+    if (!gps.begin_PVT(WAIT_TIME_HZ)) return;
 
     UbxNavPvt data = {0};
 
