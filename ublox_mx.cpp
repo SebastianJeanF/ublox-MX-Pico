@@ -665,8 +665,6 @@ bool GNSS::begin_GGA(const int data_rate_ms) {
 
     disable_non_GGA_messages();
 
-    enable_single_GPS_mode();
-
     if (!set_speed_ms(data_rate_ms)) {
         return false;
     }
@@ -680,8 +678,7 @@ bool GNSS::begin_PVT(const int data_rate_ms) {
 
     disable_non_GGA_messages(enable_GGA);
 
-    enable_single_GPS_mode();
-    printf("Setting speed\n");
+    debug_log("Setting speed\n");
 
     if (!set_speed_ms(data_rate_ms)) {
         return false;

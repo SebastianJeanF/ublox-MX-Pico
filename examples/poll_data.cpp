@@ -19,6 +19,7 @@
 #define I2C_PORT i2c0
 #define I2C_SDA 12
 #define I2C_SCL 13
+
 const int WAIT_TIME_HZ = 20;
 
 const int HZ_TO_MS = 1000;

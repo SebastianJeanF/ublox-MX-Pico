@@ -122,7 +122,7 @@ public:
 
     /**
      * Disables all GNSS's in the GNSS receiver except for GPS (all are
-     * enabled by default, so they must be manually turned off)
+     * enabled by default, so they must be manually turned off if desired)
      */
     void enable_single_GPS_mode();
 
