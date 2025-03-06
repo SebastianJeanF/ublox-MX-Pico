@@ -701,3 +701,48 @@ void GNSS::enable_single_GPS_mode() {
         // sleep_ms(WAIT_TIME_MS);
     }
 }
+
+uint32_t GNSS::get_unix_time(UbxNavPvt *data) {
+    // Use data's UTC hours, minutes, seconds, day, month, year to calculate Unix time
+    const int year = data->year;
+    const int month = data->month;
+    const int day = data->day;
+    const int hour = data->hour;
+    const int minute = data->min;
+    const int second = data->sec;
+
+    // Compute the number of days since Unix epoch (1970-01-01)
+    int days = 0;
+
+    // Add days for each complete year since 1970
+    for (int y = 1970; y < year; y++) {
+        days += 365;
+        // Check if 'y' is a leap year
+        if ((y % 4 == 0 && y % 100 != 0) || (y % 400 == 0)) {
+            days += 1;
+        }
+    }
+
+    // Days in each month. Note: February has 28 days normally
+    int monthDays[12] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+
+    // Adjust for leap year in the current year.
+    if ((year % 4 == 0 && year % 100 != 0) || (year % 400 == 0)) {
+        monthDays[1] = 29;
+    }
+
+    // Add days for each complete month in the current year
+    for (int m = 0; m < month - 1; m++) {
+        days += monthDays[m];
+    }
+
+    // Add days for the current month (day is 1-indexed)
+    days += (day - 1); // Ex) March 1st is "day 1", but is still 0 days since the new month
+    const int SECONDS_IN_DAY = 86400;
+    const int SECONDS_IN_HOUR = 3600;
+    const int SECONDS_IN_MINUTE = 60;
+
+    uint32_t unix_time = days * SECONDS_IN_DAY + hour * SECONDS_IN_HOUR + minute * SECONDS_IN_MINUTE + second;
+
+    return unix_time;
+}

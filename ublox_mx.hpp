@@ -155,6 +155,13 @@ public:
      */
     bool read_GGA_data(gnss_data_t *data);
 
+    /**
+     * Get the UNIX time from the PVT data
+     * @param pvt The PVT data struct the data is stored in
+     * @return The UNIX time in seconds
+     */
+    uint32_t get_unix_time(UbxNavPvt *pvt);
+
 private:
     bool parse_gngga(gnss_data_t *data);
 
