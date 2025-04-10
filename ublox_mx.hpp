@@ -15,6 +15,7 @@
 #include <string>
 
 #define UBLOX_ADDR (0x42)
+#define UBLOX_BYTE_TIMEOUT_US (3000)
 
 /**
  * Representation of the U-blox GNSS receiver.

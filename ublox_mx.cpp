@@ -181,7 +181,7 @@ bool GNSS::read_GGA_data(gnss_data_t *data) {
     uint8_t buffer[buf_max];
 
     while (true) {
-        bool success = i2c_read_blocking(i2c, UBLOX_ADDR, buffer + i, 1, false);
+        bool success = i2c_read_timeout_us(i2c, UBLOX_ADDR, buffer + i, 1, false, UBLOX_BYTE_TIMEOUT_US);
         if (!success) continue;
         if (buffer[i] == '$') {
 #ifdef UBLOX_VERBOSE
@@ -211,7 +211,7 @@ bool GNSS::read_GGA_data(gnss_data_t *data) {
 
     // Read subsequent bytes until newline is encountered.
     while (true) {
-        bool success = i2c_read_blocking(i2c, UBLOX_ADDR, &byte, 1, false);
+        bool success = i2c_read_timeout_us(i2c, UBLOX_ADDR, &byte, 1, false, UBLOX_BYTE_TIMEOUT_US);
         if (!success) continue;
         sentence.push_back(byte);
         if (byte == '\n') {
@@ -219,7 +219,7 @@ bool GNSS::read_GGA_data(gnss_data_t *data) {
             int i = 0;
             uint8_t buffer2[100];
             while (i < 100) {
-                bool success = i2c_read_blocking(i2c, UBLOX_ADDR, buffer2 + i, 1, false);
+                bool success = i2c_read_timeout_us(i2c, UBLOX_ADDR, buffer2 + i, 1, false, UBLOX_BYTE_TIMEOUT_US);
                 if (!success) continue;
                 if (buffer2[i] == '\n') {
                     i++;
@@ -502,7 +502,7 @@ bool GNSS::send_ublox_frame(UBXFrame *frame) {
     printf("\n");
 #endif
 
-    int write_result = i2c_write_blocking(i2c, UBLOX_ADDR, buffer, index, false);
+    int write_result = i2c_write_timeout_us(i2c, UBLOX_ADDR, buffer, index, false, UBLOX_BYTE_TIMEOUT_US * index);
     if (write_result < 0) {
         // I2C write failed
         return false;
@@ -524,7 +524,7 @@ void GNSS::disable_non_GGA_messages(bool enable_GGA) {
         const char *cmd = tmp.c_str();
 
         // Send command to the GNSS receiver
-        int result = i2c_write_blocking(i2c, UBLOX_ADDR, (const uint8_t *)cmd, strlen(cmd), false);
+        int result = i2c_write_timeout_us(i2c, UBLOX_ADDR, (const uint8_t *)cmd, strlen(cmd), false, UBLOX_BYTE_TIMEOUT_US * strlen(cmd));
         if (result < 0) {
             debug_log("Error: I2C write failed for nmeaMessage (%s)\n", msg.c_str());
         } else {
@@ -605,7 +605,7 @@ bool GNSS::read_PVT_data(UbxNavPvt *pvt) {
     while (sync_attempts < MAX_SYNC_ATTEMPTS) {
         uint8_t byte;
         // Read a single byte
-        if (!i2c_read_blocking(i2c, UBLOX_ADDR, &byte, 1, true)) {
+        if (!i2c_read_timeout_us(i2c, UBLOX_ADDR, &byte, 1, true, UBLOX_BYTE_TIMEOUT_US)) {
             debug_log("Error reading byte during sync.\n");
             return false;
         }
@@ -613,7 +613,7 @@ bool GNSS::read_PVT_data(UbxNavPvt *pvt) {
             packet[0] = byte;
 
             // Read the next 3 bytes to complete the header
-            if (!i2c_read_blocking(i2c, UBLOX_ADDR, packet + 1, HEADER_SIZE - 1, true)) {
+            if (!i2c_read_timeout_us(i2c, UBLOX_ADDR, packet + 1, HEADER_SIZE - 1, true, UBLOX_BYTE_TIMEOUT_US * (HEADER_SIZE - 1))) {
                 debug_log("Error reading header bytes.\n");
                 return false;
             }
@@ -626,7 +626,7 @@ bool GNSS::read_PVT_data(UbxNavPvt *pvt) {
     }
 
     // We have our header in packet[0..3]. Read the rest of the packet[HEADER_SIZE..(PACKET_SIZE-1)].
-    if (!i2c_read_blocking(i2c, UBLOX_ADDR, packet + HEADER_SIZE, PACKET_SIZE - HEADER_SIZE, true)) {
+    if (!i2c_read_timeout_us(i2c, UBLOX_ADDR, packet + HEADER_SIZE, PACKET_SIZE - HEADER_SIZE, true, UBLOX_BYTE_TIMEOUT_US * (PACKET_SIZE - HEADER_SIZE))) {
         debug_log("Error reading packet body.\n");
         return false;
     }
@@ -634,7 +634,7 @@ bool GNSS::read_PVT_data(UbxNavPvt *pvt) {
     // --- Now, check for any immediately available new packets ---
     while (true) {
         uint8_t header[HEADER_SIZE];
-        if (!i2c_read_blocking(i2c, UBLOX_ADDR, header, HEADER_SIZE, true)) {
+        if (!i2c_read_timeout_us(i2c, UBLOX_ADDR, header, HEADER_SIZE, true, UBLOX_BYTE_TIMEOUT_US * HEADER_SIZE)) {
             // No immediate new data available, so exit the loop.
             break;
         }
@@ -645,7 +645,7 @@ bool GNSS::read_PVT_data(UbxNavPvt *pvt) {
         }
 
         // Replace packet[HEADER_SIZE..(PACKET_SIZE-1)] with updated data
-        if (!i2c_read_blocking(i2c, UBLOX_ADDR, packet + HEADER_SIZE, PACKET_SIZE - HEADER_SIZE, true)) {
+        if (!i2c_read_timeout_us(i2c, UBLOX_ADDR, packet + HEADER_SIZE, PACKET_SIZE - HEADER_SIZE, true, UBLOX_BYTE_TIMEOUT_US * (PACKET_SIZE - HEADER_SIZE))) {
             break;
         }
     }
